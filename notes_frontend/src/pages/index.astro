@@ -1,11 +1,211 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import NavBar from '../components/NavBar.astro';
+import NotesList from '../components/NotesList.astro';
+import EditorSidebar from '../components/EditorSidebar.astro';
+import type { Note } from '../services/api';
+import { listNotes } from '../services/api';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Preload initial notes server-side (will use localStorage fallback client-side after hydration)
+const search = Astro.url.searchParams.get('q') ?? '';
+const initialNotes: Note[] = await listNotes(search);
 ---
 
 <Layout>
-	<Welcome />
+  <NavBar onAddId="add-note-btn" searchId="search-notes" initialQuery={search} />
+
+  <main class="container" style="padding-top: 20px;">
+    <div class="main-area">
+      <section id="list-section">
+        <NotesList notes={initialNotes} />
+      </section>
+      <section id="editor-section">
+        <EditorSidebar formId="note-form" titleId="note-title" contentId="note-content" saveId="save-note" resetId="reset-note" mode="create" />
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { listNotes, createNote, updateNote, deleteNote, getNote } from '../services/api.ts';
+
+    const listEl = document.getElementById('notes-list');
+    const searchEl = document.getElementById('search-notes');
+    const addBtn = document.getElementById('add-note-btn');
+
+    const form = document.getElementById('note-form');
+    const titleInput = document.getElementById('note-title');
+    const contentInput = document.getElementById('note-content');
+    const saveBtn = document.getElementById('save-note');
+    const resetBtn = document.getElementById('reset-note');
+
+    /** App state kept in memory on the page */
+    let state = {
+      mode: 'create', // 'create' | 'edit'
+      editingId: null as string | null,
+      notes: [],
+      query: new URLSearchParams(window.location.search).get('q') || ''
+    };
+
+    function setMode(mode, noteId = null) {
+      state.mode = mode;
+      state.editingId = noteId;
+      const header = document.querySelector('#editor-section h3');
+      const helper = document.querySelector('#editor-section .panel-header span');
+      if (header) header.textContent = mode === 'edit' ? 'Edit Note' : 'Create Note';
+      if (helper) helper.textContent = mode === 'edit' ? 'Update your note' : 'Add something new';
+      saveBtn.textContent = mode === 'edit' ? 'Save Changes' : 'Create Note';
+      if (mode === 'create') {
+        form?.reset();
+      }
+    }
+
+    function renderNotes(notes) {
+      const container = document.querySelector('#list-section .panel-body');
+      if (!container) return;
+
+      if (!notes || notes.length === 0) {
+        container.innerHTML = '<div class="empty">No notes yet. Create one to get started!</div>';
+        return;
+      }
+
+      const html = [
+        '<ul class="note-list" id="notes-list">',
+        ...notes.map(n => `
+          <li class="note-item" data-id="${n.id}">
+            <div>
+              <h4 class="note-title">${n.title ? escapeHtml(n.title) : 'Untitled'}</h4>
+              <p class="note-content">${escapeHtml(n.content || '')}</p>
+              <div class="note-meta">
+                <span>Updated: ${new Date(n.updatedAt).toLocaleString()}</span>
+              </div>
+            </div>
+            <div class="note-actions">
+              <button class="icon-btn" title="Edit" data-action="edit" aria-label="Edit ${escapeHtml(n.title || '')}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M14.06 4.94l3.75 3.75" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="icon-btn" title="Delete" data-action="delete" aria-label="Delete ${escapeHtml(n.title || '')}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 6h18" stroke="currentColor" stroke-width="2"/>
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </li>
+        `),
+        '</ul>'
+      ].join('');
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      return (str ?? '').toString()
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    async function refreshNotes() {
+      const q = state.query?.trim() || '';
+      const notes = await listNotes(q || undefined);
+      // sort updated desc
+      notes.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      state.notes = notes;
+      renderNotes(notes);
+    }
+
+    // Event: global click for edit/delete on notes list
+    document.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      // handle action buttons inside note-item
+      const actionBtn = target.closest('[data-action]');
+      if (actionBtn && actionBtn instanceof HTMLElement) {
+        const action = actionBtn.getAttribute('data-action');
+        const item = actionBtn.closest('.note-item');
+        const id = item?.getAttribute('data-id');
+        if (!action || !id) return;
+
+        if (action === 'edit') {
+          const note = await getNote(id);
+          if (!note) return;
+          setMode('edit', id);
+          (document.getElementById('note-title') as HTMLInputElement).value = note.title || '';
+          (document.getElementById('note-content') as HTMLTextAreaElement).value = note.content || '';
+          // Scroll to editor on small screens
+          document.getElementById('editor-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (action === 'delete') {
+          const confirmed = confirm('Delete this note? This action cannot be undone.');
+          if (!confirmed) return;
+          await deleteNote(id);
+          if (state.mode === 'edit' && state.editingId === id) {
+            setMode('create', null);
+          }
+          await refreshNotes();
+        }
+      }
+    });
+
+    // Event: add new
+    addBtn?.addEventListener('click', () => {
+      setMode('create', null);
+      form?.reset();
+      titleInput?.focus();
+    });
+
+    // Event: search input
+    let searchDebounce;
+    searchEl?.addEventListener('input', (e) => {
+      const val = (e.target as HTMLInputElement).value || '';
+      state.query = val;
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(async () => {
+        const url = new URL(window.location.href);
+        if (val.trim()) url.searchParams.set('q', val.trim());
+        else url.searchParams.delete('q');
+        window.history.replaceState({}, '', url.toString());
+        await refreshNotes();
+      }, 250);
+    });
+
+    // Event: clear (reset form)
+    resetBtn?.addEventListener('click', () => {
+      form?.reset();
+      if (state.mode === 'edit') {
+        setMode('create', null);
+      }
+      titleInput?.focus();
+    });
+
+    // Event: submit (create or update)
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = (titleInput as HTMLInputElement).value.trim();
+      const content = (contentInput as HTMLTextAreaElement).value.trim();
+
+      if (!title) {
+        alert('Please provide a title.');
+        (titleInput as HTMLInputElement).focus();
+        return;
+      }
+
+      if (state.mode === 'edit' && state.editingId) {
+        await updateNote(state.editingId, { title, content });
+      } else {
+        await createNote({ title, content });
+      }
+      setMode('create', null);
+      form?.reset();
+      await refreshNotes();
+    });
+
+    // Initial load on client to ensure localStorage fallback reflects
+    refreshNotes();
+  </script>
 </Layout>

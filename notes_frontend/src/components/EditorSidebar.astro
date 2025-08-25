@@ -1,0 +1,51 @@
+---
+/**
+ * EditorSidebar shows add/edit form.
+ * Props:
+ *  - formId: id for the form element
+ *  - titleId, contentId: field ids
+ *  - saveId, resetId: button ids
+ *  - mode: 'create' | 'edit'
+ *  - currentTitle, currentContent: strings
+ */
+const {
+  formId = 'note-form',
+  titleId = 'note-title',
+  contentId = 'note-content',
+  saveId = 'save-note',
+  resetId = 'reset-note',
+  mode = 'create',
+  currentTitle = '',
+  currentContent = ''
+} = Astro.props as Record<string, string>;
+---
+<aside class="editor">
+  <div class="panel">
+    <div class="panel-header">
+      <h3 style="margin:0;">{mode === 'edit' ? 'Edit Note' : 'Create Note'}</h3>
+      <span style="color: var(--text-muted); font-size: 12px;">{mode === 'edit' ? 'Update your note' : 'Add something new'}</span>
+    </div>
+    <div class="panel-body">
+      <form id={formId} novalidate>
+        <div class="field">
+          <label for={titleId}>Title</label>
+          <input id={titleId} class="input" name="title" placeholder="Title" value={currentTitle} required maxlength="160" />
+        </div>
+        <div class="field">
+          <label for={contentId}>Content</label>
+          <textarea id={contentId} class="textarea" name="content" placeholder="Write your note..." >{currentContent}</textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="submit" id={saveId} class="btn btn-primary">{mode === 'edit' ? 'Save Changes' : 'Create Note'}</button>
+          <button type="button" id={resetId} class="btn" title="Clear form">Clear</button>
+        </div>
+        <p class="helper">Tip: Use the search bar to quickly find notes. Changes are saved to your backend or local storage fallback.</p>
+      </form>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // Events are handled at page level based on provided ids.
+</script>

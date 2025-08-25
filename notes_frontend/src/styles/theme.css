@@ -1,0 +1,311 @@
+/* Modern Light Theme with specified colors and CSS variables */
+
+:root {
+  --color-primary: #1976d2;
+  --color-secondary: #424242;
+  --color-accent: #ff9800;
+
+  --bg: #ffffff;
+  --bg-soft: #f6f8fb;
+  --surface: #ffffff;
+  --surface-elev: #ffffff;
+  --text: #0f172a;
+  --text-muted: #5f6b7a;
+  --border: #e5e7eb;
+  --ring: rgba(25, 118, 210, 0.4);
+  --shadow: 0 10px 25px rgba(2, 6, 23, 0.08);
+  --shadow-sm: 0 2px 8px rgba(2, 6, 23, 0.06);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #app-root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; }
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn-accent {
+  background: var(--color-accent);
+  color: #1f2937;
+  border-color: transparent;
+}
+
+.input, .textarea, .search {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text);
+  transition: 0.15s ease;
+}
+
+.input:focus, .textarea:focus, .search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+/* Layout */
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: saturate(140%) blur(8px);
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.brand-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in oklab, var(--color-primary) 70%, #ffffff));
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Main area: list + editor sidebar */
+.main-area {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  padding: 20px 0 28px;
+}
+
+@media (max-width: 1024px) {
+  .main-area {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Notes panel */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  padding: 16px 16px 0 16px;
+}
+
+.panel-body {
+  padding: 16px;
+}
+
+/* Search and toolbar row */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.toolbar .search {
+  flex: 1;
+}
+
+/* Notes list */
+.note-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.note-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-elev);
+  transition: 0.15s ease;
+}
+
+.note-item:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--border));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.note-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.note-title {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.note-content {
+  margin: 0;
+  color: var(--text-muted);
+  white-space: pre-line;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.note-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--border));
+}
+
+/* Editor sidebar */
+.editor {
+  position: sticky;
+  top: 86px;
+}
+
+.editor .panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.field label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.helper {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Empty state */
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--text-muted);
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+}
+
+/* Hide when stacked */
+@media (max-width: 1024px) {
+  .editor {
+    position: static;
+  }
+}

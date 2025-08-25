@@ -1,47 +1,65 @@
-# Astro Starter Kit: Minimal
+# Notes Frontend (Astro)
 
-```sh
-npm create astro@latest -- --template minimal
-```
+A modern, light-themed notes application UI built with Astro. Features:
+- Create notes
+- Edit notes
+- Delete notes
+- View notes list
+- Search notes
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
+Layout:
+- Top navigation bar with search and "New Note" button
+- Main content area with notes list
+- Sidebar for adding or editing a note
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Theme colors:
+- Primary: #1976d2
+- Secondary: #424242
+- Accent: #ff9800
 
-## 🚀 Project Structure
+## Getting Started
 
-Inside of your Astro project, you'll see the following folders and files:
+1) Install dependencies
+   npm install
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+2) Run in development
+   npm run dev
+   The app runs on port 3000 per astro.config.mjs
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+3) Build
+   npm run build
+   npm run preview
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Backend/API
 
-Any static assets, like images, can be placed in the `public/` directory.
+This frontend expects a backend (or local database service) exposing REST endpoints:
 
-## 🧞 Commands
+- GET    {PUBLIC_NOTES_API_BASE or /api}/notes?search=<q>   -> 200 [{ id, title, content, createdAt, updatedAt }]
+- GET    {base}/notes/:id                                    -> 200 { id, ... }
+- POST   {base}/notes                                        -> 201 { id, ... }   body: { title, content }
+- PUT    {base}/notes/:id                                    -> 200 { id, ... }   body: { title, content }
+- DELETE {base}/notes/:id                                    -> 204/200
 
-All commands are run from the root of the project, from a terminal:
+If no backend is reachable, the app falls back to localStorage to store notes.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Environment:
+- PUBLIC_NOTES_API_BASE (optional) to point to backend origin/path. Example:
+  PUBLIC_NOTES_API_BASE=https://localhost:8080/api
 
-## 👀 Want to learn more?
+You can create a .env file in the project root with the above variable; Astro exposes PUBLIC_* vars to the client.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Code Structure
+
+- src/styles/theme.css: Base theme styles and layout utilities
+- src/layouts/Layout.astro: Global layout
+- src/components/NavBar.astro: Top bar with search and create
+- src/components/NotesList.astro: List of notes with edit/delete buttons
+- src/components/EditorSidebar.astro: Create/edit form
+- src/services/api.ts: PUBLIC_INTERFACE functions for CRUD and search with backend + localStorage fallback
+- src/pages/index.astro: Main screen wiring components and client-side behavior
+
+## Accessibility and UX
+
+- Keyboard focus rings and button states
+- ARIA labels on interactive icons
+- Responsive layout (sidebar stacks on smaller screens)
