@@ -1,0 +1,20 @@
+---
+import ThemeToggle from '../components/ThemeToggle.astro';
+import '../styles/theme.css';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Notes</title>
+    <meta name="theme-color" content="#1976d2" />
+  </head>
+  <body id="app-root">
+    <ThemeToggle />
+    <slot />
+  </body>
+</html>
